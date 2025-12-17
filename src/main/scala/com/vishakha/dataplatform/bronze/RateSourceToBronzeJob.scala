@@ -1,3 +1,4 @@
+//source to bronze
 package com.vishakha.dataplatform.bronze
 
 import org.apache.spark.sql.SparkSession
@@ -11,6 +12,8 @@ object BatchEventsToBronze {
       .appName("Batch Events To Bronze")
       .master("local[*]")
       .getOrCreate()
+
+    spark.sparkContext.setLogLevel("ERROR")
 
     import spark.implicits._
 
