@@ -1,8 +1,8 @@
-//source to bronze
 package com.vishakha.dataplatform.bronze
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types._
 
 object BatchEventsToBronze {
 
@@ -11,22 +11,33 @@ object BatchEventsToBronze {
     val spark = SparkSession.builder()
       .appName("Batch Events To Bronze")
       .master("local[*]")
+      .config("spark.ui.showConsoleProgress", "false")
       .getOrCreate()
 
     spark.sparkContext.setLogLevel("ERROR")
 
-    import spark.implicits._
+    val eventSchema = StructType(List(
+      StructField("event_id", IntegerType, nullable = false),
+      StructField("event_type", StringType, nullable = false),
+      StructField("user_id", IntegerType, nullable = false)
+    ))
 
-    val eventsDF = Seq(
-      (1, "login", 101),
-      (2, "logout", 102),
-      (3, "login", 101),
-      (3, "login", 101),
-      (3, " ", 101),
-      (4, "purchase", 103)
-    ).toDF("event_id", "event_type", "user_id")
+    val rawData = Seq(
+      Row(1, "login", 101),
+      Row(2, "logout", 102),
+      Row(3, "login", 101),
+      Row(4, "purchase", 103)
+    )
 
-    eventsDF.show(false)
+    val bronzeDF = (spark createDataFrame(
+      spark.sparkContext.parallelize(rawData),
+      eventSchema
+    ))
+      .withColumn("ingestion_ts", current_timestamp())
+      .withColumn("source_system", lit("mock_events"))
+      .withColumn("processing_date", current_date())
+
+    bronzeDF.show(false)
 
     spark.stop()
   }
