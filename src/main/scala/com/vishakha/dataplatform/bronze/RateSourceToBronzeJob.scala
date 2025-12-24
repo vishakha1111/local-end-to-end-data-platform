@@ -3,6 +3,7 @@ package com.vishakha.dataplatform.bronze
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
+import java.sql.Timestamp
 
 object BatchEventsToBronze {
 
@@ -37,8 +38,16 @@ object BatchEventsToBronze {
       .withColumn("source_system", lit("mock_events"))
       .withColumn("processing_date", current_date())
 
+    val lastProcessedTimestamp =
+      Timestamp.valueOf("2025-12-24 00:00:00")
+
     bronzeDF.show(false)
 
+    println("New records after 24th Dec")
+    val newRecordsDF = bronzeDF
+      .filter(col("ingestion_ts") > lastProcessedTimestamp)
+
+    newRecordsDF.show()
     spark.stop()
   }
 }
