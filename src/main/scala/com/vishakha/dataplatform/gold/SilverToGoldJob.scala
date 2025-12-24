@@ -10,7 +10,10 @@ object SilverToGoldJob {
     val spark = SparkSession.builder()
       .appName("Silver To Gold")
       .master("local[*]")
+      .config("spark.ui.showConsoleProgress", "false")
       .getOrCreate()
+
+    spark.sparkContext.setLogLevel("ERROR")
 
     import spark.implicits._
 
@@ -23,7 +26,11 @@ object SilverToGoldJob {
 
     val goldDF = silverDF
       .groupBy("event_type")
-      .count()
+      .agg(
+        count("*").as("total_events"),
+        countDistinct("user_id").as("unique_users")
+      )
+      .withColumn("metric_date", current_date())
 
     goldDF.show(false)
 
