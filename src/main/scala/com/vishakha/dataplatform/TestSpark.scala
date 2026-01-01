@@ -1,20 +1,18 @@
 package com.vishakha.dataplatform
 
-import org.apache.spark.sql.SparkSession
+import com.vishakha.dataplatform.utils.SparkSessionUtil
 
 object TestSpark {
+
   def main(args: Array[String]): Unit = {
 
-    val spark = SparkSession.builder()
-      .appName("Spark Test")
-      .master("local[*]")
-      .getOrCreate()
+    val spark = SparkSessionUtil.getSparkSession("TestSpark")
 
     import spark.implicits._
 
     val df = Seq(
-      (1, "Vishakha"),
-      (2, "AWS Data Engineer")
+      (1, "Alice"),
+      (2, "Bob")
     ).toDF("id", "name")
 
     df.show()
